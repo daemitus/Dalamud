@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -67,5 +69,26 @@ namespace Dalamud {
         }
 
         public static string AssemblyVersion { get; } = Assembly.GetAssembly(typeof(ChatHandlers)).GetName().Version.ToString();
+    }
+
+    /// <summary>
+    ///     Linq Extensions
+    /// </summary>
+    public static class LinqExtensions
+    {
+        /// <summary>
+        ///     Rotate a 2D nested array 90 degrees.
+        /// </summary>
+        /// <typeparam name="T">Type of the underlying 2D array</typeparam>
+        /// <param name="source">Array to be transposed</param>
+        /// <returns></returns>
+        public static IEnumerable<IEnumerable<T>> Transpose<T>(this IEnumerable<IEnumerable<T>> source)
+        {
+            return from row in source
+                   from col in row.Select(
+                       (x, i) => new KeyValuePair<int, T>(i, x))
+                   group col.Value by col.Key into c
+                   select c as IEnumerable<T>;
+        }
     }
 }
