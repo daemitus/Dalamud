@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Runtime.InteropServices;
 using Dalamud.Game.ClientState.Actors;
 using Dalamud.Game.ClientState.Actors.Types;
+using Dalamud.Game.ClientState.Hotbars;
 using Dalamud.Game.Internal;
 using Dalamud.Game.Internal.Network;
 using Dalamud.Hooking;
@@ -98,9 +99,14 @@ namespace Dalamud.Game.ClientState
         public Condition Condition;
 
         /// <summary>
-        /// The class facilitating target data access
+        /// The class facilitating target data access.
         /// </summary>
         public Targets Targets;
+
+        /// <summary>
+        /// The class facilitating hotbar slot data access.
+        /// </summary>
+        public HotbarTable Hotbars;
 
         /// <summary>
         /// Set up client state access.
@@ -128,6 +134,8 @@ namespace Dalamud.Game.ClientState
 
             this.Targets = new Targets(dalamud, Address);
 
+            this.Hotbars = new HotbarTable(dalamud);
+
             Log.Verbose("SetupTerritoryType address {SetupTerritoryType}", Address.SetupTerritoryType);
 
             this.setupTerritoryTypeHook = new Hook<SetupTerritoryTypeDelegate>(Address.SetupTerritoryType,
@@ -146,6 +154,7 @@ namespace Dalamud.Game.ClientState
             this.PartyList.Dispose();
             this.setupTerritoryTypeHook.Dispose();
             this.Actors.Dispose();
+            this.Hotbars.Dispose();
         }
 
         private bool lastConditionNone = true;
