@@ -139,7 +139,7 @@ namespace Dalamud.Game.ClientState.Structs
         */
         public ushort KeybindModifiersVK;
 
-        public short KeybindVK;
+        public ushort KeybindVK;
 
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 12)]
         public byte[] padding;

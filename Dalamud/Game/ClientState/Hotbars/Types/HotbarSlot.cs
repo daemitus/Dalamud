@@ -29,7 +29,8 @@ namespace Dalamud.Game.ClientState.Hotbars.Types
         /// <summary>
         ///     Name of the object contained in this slot.
         /// </summary>
-        public string Name => hotbarStruct.Name.Replace(hotbarStruct.Keybind, "");
+        public string Name => string.IsNullOrEmpty(hotbarStruct.Keybind)  // Breaks if oldValue == ""
+            ? hotbarStruct.Name : hotbarStruct.Name.Replace(hotbarStruct.Keybind, "");
 
         /// <summary>
         ///     When you hover over the slot, the contents between the [...]
@@ -39,7 +40,7 @@ namespace Dalamud.Game.ClientState.Hotbars.Types
         /// <summary>
         ///     The primary key of the keybind as an integer.
         /// </summary>
-        public int KeybindVK => hotbarStruct.KeybindVK;
+        public int KeybindVK => hotbarStruct.KeybindVK == 0 ? hotbarStruct.KeybindModifiersVK : hotbarStruct.KeybindVK;
 
         /// <summary>
         ///     The modifier keys of the keybind as integers from <see cref="System.Windows.Forms.Keys"/>.

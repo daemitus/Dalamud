@@ -42,30 +42,6 @@ namespace Dalamud.Game.ClientState.Hotbars
             dalamud.Framework.OnUpdateEvent += Framework_OnUpdateEvent;
         }
 
-        /// <summary>
-        ///     The pointer paths don't actually work until the player is logged in
-        ///     so don't reference anything until then.
-        /// </summary>
-        public void LoadPointers()
-        {
-            if (!loaded)
-            {
-                loaded = true;
-
-                // Make sure to add the sig length to the address
-
-                // https://github.com/FFXIVAPP/sharlayan-resources/blob/master/signatures/5.3/x64.json#L113
-                var hotbarBase = Dalamud.SigScanner.ScanText("48 8B 47 08 49 8B 5D 00 49 8B 77 28 48 8B 3D") + 15;
-                HotbarAddress = ResolvePointerPath(hotbarBase, new List<int>() { 0, 0, 56, 48, 40, 32, 0, 0 }, true);
-                Log.Verbose($"Hotbar table address {HotbarAddress}");
-
-                // https://github.com/FFXIVAPP/sharlayan-resources/blob/master/signatures/5.3/x64.json#L128
-                var recastBase = Dalamud.SigScanner.ScanText("48 8B 47 08 49 8B 5D 00 49 8B 77 28 48 8B 3D") + 15;
-                RecastAddress = ResolvePointerPath(recastBase, new List<int>() { 0, 0, 56, 24, 48, 32, 60 }, true);
-                Log.Verbose($"Recast table address {RecastAddress}");
-            }
-        }
-
         private void Framework_OnUpdateEvent(Framework framework)
         {
             this.ResetCache();
@@ -191,6 +167,38 @@ namespace Dalamud.Game.ClientState.Hotbars
 
         #endregion
 
+
+        /// <summary>
+        ///     The pointer paths don't actually work until the player is logged in
+        ///     so don't reference anything until then.
+        /// </summary>
+        public void LoadPointers()
+        {
+            if (!loaded)
+            {
+                loaded = true;
+
+                // Make sure to add the sig length to the address
+
+                // https://github.com/FFXIVAPP/sharlayan-resources/blob/master/signatures/5.3/x64.json#L113
+                var hotbarBase = Dalamud.SigScanner.ScanText("48 8B 47 08 49 8B 5D 00 49 8B 77 28 48 8B 3D") + 15;
+                HotbarAddress = ResolvePointerPath(hotbarBase, new List<int>() { 0, 0, 56, 48, 40, 32, 0, 0 }, true);
+                Log.Verbose($"Hotbar table address {HotbarAddress}");
+
+                // https://github.com/FFXIVAPP/sharlayan-resources/blob/master/signatures/5.3/x64.json#L128
+                var recastBase = Dalamud.SigScanner.ScanText("48 8B 47 08 49 8B 5D 00 49 8B 77 28 48 8B 3D") + 15;
+                RecastAddress = ResolvePointerPath(recastBase, new List<int>() { 0, 0, 56, 24, 48, 32, 60 }, true);
+                Log.Verbose($"Recast table address {RecastAddress}");
+            }
+        }
+
+        /// <summary>
+        ///     Follow a series of pointers until you get to where you want to go
+        /// </summary>
+        /// <param name="baseAddress">Starting address</param>
+        /// <param name="pointerPath">Offset to find the next pointer</param>
+        /// <param name="isASM">If the first pointer is an ASM pointer or not</param>
+        /// <returns></returns>
         private IntPtr ResolvePointerPath(IntPtr baseAddress, IEnumerable<int> pointerPath, bool isASM)
         {
             // Modified from https://github.com/FFXIVAPP/sharlayan/blob/master/Sharlayan/MemoryHandler.cs#L215
