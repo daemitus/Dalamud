@@ -129,9 +129,11 @@ namespace Dalamud.Game.ClientState.Hotbars
 
         public IEnumerator<((HotbarType, SlotType), HotbarSlot)> GetEnumerator()
         {
+            HotbarSlot hotbarSlot;
             foreach (HotbarType hotbar in Enum.GetValues(typeof(HotbarType)))
                 foreach (SlotType slot in Enum.GetValues(typeof(SlotType)))
-                    yield return ((hotbar, slot), this[hotbar, slot]);
+                    if ((hotbarSlot = this[hotbar, slot]).ID != 0)
+                        yield return ((hotbar, slot), hotbarSlot);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -167,6 +169,7 @@ namespace Dalamud.Game.ClientState.Hotbars
 
         #endregion
 
+        #region Memory stuff
 
         /// <summary>
         ///     The pointer paths don't actually work until the player is logged in
@@ -198,16 +201,12 @@ namespace Dalamud.Game.ClientState.Hotbars
         /// <param name="baseAddress">Starting address</param>
         /// <param name="pointerPath">Offset to find the next pointer</param>
         /// <param name="isASM">If the first pointer is an ASM pointer or not</param>
-        /// <returns></returns>
         private IntPtr ResolvePointerPath(IntPtr baseAddress, IEnumerable<int> pointerPath, bool isASM)
         {
             // Modified from https://github.com/FFXIVAPP/sharlayan/blob/master/Sharlayan/MemoryHandler.cs#L215
-
-            // Log.Verbose($"Base address is {baseAddress}");
             IntPtr nextAddress = baseAddress;
             foreach (var offset in pointerPath)
             {
-                Log.Verbose($"");
                 baseAddress = new IntPtr(nextAddress.ToInt64() + offset);
                 if (baseAddress == IntPtr.Zero)
                 {
@@ -219,15 +218,15 @@ namespace Dalamud.Game.ClientState.Hotbars
                     isASM = false;
                     var asmOffset = Marshal.ReadInt32(new IntPtr(baseAddress.ToInt64()));
                     nextAddress = baseAddress + asmOffset + 4;
-                    // Log.Verbose($"New address is {nextAddress} (ASM)");
                 }
                 else
                 {
                     nextAddress = Marshal.ReadIntPtr(baseAddress);
-                    // Log.Verbose($"New address is {nextAddress}");
                 }
             }
             return baseAddress;
         }
+
+        #endregion
     }
 }
