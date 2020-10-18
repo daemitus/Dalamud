@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup Label="Target">
         <PlatformTarget>AnyCPU</PlatformTarget>
         <TargetFramework>net472</TargetFramework>
@@ -71,4 +71,7 @@
         <ProjectReference Include="..\lib\ImGuiScene\deps\SDL2-CS\SDL2-CS.csproj" />
         <ProjectReference Include="..\lib\ImGuiScene\ImGuiScene\ImGuiScene.csproj" />
     </ItemGroup>
+    <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+      <Exec Command="if $(ConfigurationName) == Debug (&#xD;&#xA;    echo Running Debug Post Build&#xD;&#xA;&#xD;&#xA;    echo Unloading Dalamud&#xD;&#xA;    curl -m 2 &quot;http://localhost:37435/unload_dalamud&quot; 2&gt;NUL&#xD;&#xA;    waitfor NothingAtAll /t 2 2&gt;NUL&#xD;&#xA;&#xD;&#xA;    echo Copying to XIVLauncher&#xD;&#xA;    xcopy /F /Y &quot;$(TargetPath)&quot; &quot;%25AppData%25\XIVLauncher\addon\Hooks\&quot;&#xD;&#xA;&#xD;&#xA;    echo Injecting Dalamud&#xD;&#xA;    cd &quot;%25AppData%25\XIVLauncher\addon\Hooks&quot;&#xD;&#xA;    &quot;%25AppData%25\XIVLauncher\addon\Hooks\Dalamud.Injector.exe&quot;&#xD;&#xA;&#xD;&#xA;    exit /b 0&#xD;&#xA;)" />
+    </Target>
 </Project>
