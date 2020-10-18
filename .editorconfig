@@ -10,3 +10,6 @@ insert_final_newline = true
 # 4 space indentation
 indent_style = space
 indent_size = 4
+
+# CS1591: Missing XML comment for publicly visible type or member
+dotnet_diagnostic.CS1591.severity = silent
