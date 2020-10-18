@@ -19,9 +19,19 @@ namespace Dalamud.Game.ClientState.Hotbars
 
         internal class HotbarMap : Dictionary<(HotbarType, SlotType), HotbarSlot> { }
 
-        private HotbarMap HotbarCache { get; } = new HotbarMap();
+        private HotbarMap _hotbarCache = null;
 
-        private void ResetCache() => HotbarCache.Clear();
+        private HotbarMap HotbarCache
+        {
+            get
+            {
+                if (_hotbarCache == null)
+                    _hotbarCache = new HotbarMap();
+                return _hotbarCache;
+            }
+        }
+
+        private void ResetCache() => _hotbarCache = null;
 
         #endregion
 
@@ -29,7 +39,6 @@ namespace Dalamud.Game.ClientState.Hotbars
         private bool loaded = false;
         private IntPtr HotbarAddress = IntPtr.Zero;
         private IntPtr RecastAddress = IntPtr.Zero;
-
 
         /// <summary>
         ///     Set up the hotbar table collection.
@@ -84,21 +93,6 @@ namespace Dalamud.Game.ClientState.Hotbars
         }
 
         /// <summary>
-        ///     Load the entire cache at once.
-        /// </summary>
-        public void LoadHotbarCache()
-        {
-            var hotbarData = Marshal.PtrToStructure<Structs.HotbarSlotCollectionContainer>(HotbarAddress);
-            var recastData = Marshal.PtrToStructure<Structs.RecastSlotCollectionContainer>(RecastAddress);
-            foreach (HotbarType hotbar in Enum.GetValues(typeof(HotbarType)))
-                foreach (SlotType slot in Enum.GetValues(typeof(SlotType)))
-                    if (!HotbarCache.TryGetValue((hotbar, slot), out HotbarSlot _))
-                        HotbarCache[(hotbar, slot)] = new HotbarSlot(
-                            ref hotbarData.Bars[(int)hotbar].Slots[(int)slot],
-                            ref recastData.Bars[(int)hotbar].Slots[(int)slot]);
-        }
-
-        /// <summary>
         ///     Get a single Hotbar slot on demand.
         /// </summary>
         /// <param name="hotbar">Hotbar type</param>
@@ -106,7 +100,6 @@ namespace Dalamud.Game.ClientState.Hotbars
         [CanBeNull]
         private HotbarSlot GetHotbarSlot(HotbarType hotbar, SlotType slot)
         {
-
             if (!Enum.IsDefined(typeof(HotbarType), hotbar)) return null;
             if (!Enum.IsDefined(typeof(SlotType), slot)) return null;
 

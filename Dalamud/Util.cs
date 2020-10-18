@@ -69,19 +69,60 @@ namespace Dalamud {
         }
 
         public static string AssemblyVersion { get; } = Assembly.GetAssembly(typeof(ChatHandlers)).GetName().Version.ToString();
+
+        /// <summary>
+        ///     Convert a struct to a List of roughly ToString()'d components. It is purposely not joined together so if
+        ///     you're dumping several structs, they can be output in an aligned table format.
+        /// </summary>
+        /// <typeparam name="T">Struct Type</typeparam>
+        /// <param name="aStruct">The struct being stringified</param>
+        public static List<string> StructToComponents<T>(T aStruct) where T : struct
+        {
+            var components = new List<string>();
+            foreach (FieldInfo fieldInfo in aStruct.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
+            {
+                object fieldData = fieldInfo.GetValue(aStruct);
+                if (fieldInfo.FieldType.IsArray)
+                {
+                    StringBuilder sb = new StringBuilder();
+                    var aFieldData = (Array)fieldData;
+                    for (int i = 0; i < aFieldData.Length; i++)
+                    {
+                        sb.Append(aFieldData.GetValue(i).ToString());
+                        if (i < aFieldData.Length - 1)
+                            sb.Append(", ");
+                    }
+                    components.Add($"{fieldInfo.Name}=new {fieldInfo.FieldType} {{ {sb} }}");
+                }
+                else
+                {
+                    components.Add($"{fieldInfo.Name}={fieldData}");
+                }
+            }
+            return components;
+        }
+
+        /// <summary>
+        ///     Convert a struct to a string of roughly ToString()'d components joined by two spaces.
+        /// </summary>
+        /// <typeparam name="T">Struct Type</typeparam>
+        /// <param name="aStruct">The struct being stringified</param>
+        public static string StructToString<T>(T aStruct) where T : struct
+        {
+            return string.Join("  ", StructToComponents(aStruct));
+        }
     }
 
     /// <summary>
     ///     Linq Extensions
     /// </summary>
-    public static class LinqExtensions
+    internal static class LinqExtensions
     {
         /// <summary>
         ///     Rotate a 2D nested array 90 degrees.
         /// </summary>
         /// <typeparam name="T">Type of the underlying 2D array</typeparam>
         /// <param name="source">Array to be transposed</param>
-        /// <returns></returns>
         public static IEnumerable<IEnumerable<T>> Transpose<T>(this IEnumerable<IEnumerable<T>> source)
         {
             return from row in source

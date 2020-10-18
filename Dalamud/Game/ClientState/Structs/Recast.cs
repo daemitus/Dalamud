@@ -1,7 +1,6 @@
 using Dalamud.Game.ClientState.Hotbars.Types;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -21,58 +20,44 @@ namespace Dalamud.Game.ClientState.Structs
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = RecastConsts.NumBars)]
         public RecastSlotCollection[] Bars;
 
-        internal List<List<string>> ToStringComponents()
-        {
-            return Bars.SelectMany(x => x.ToStringComponents()).ToList();
-        }
-
         public override string ToString()
         {
-            var barComponents = ToStringComponents();
-
-            int[] paddings = (
-                from col in barComponents.Transpose()
-                select col.Aggregate("", (max, curr) => max.Length > curr.Length ? max : curr).Length
-            ).ToArray();
+            List<List<string>> barComponents = Bars.SelectMany(bar => bar.Slots.Select(slot => Util.StructToComponents(slot).ToList()).ToList()).ToList();
+            int[] paddings = barComponents.Transpose().Select(col => col.Aggregate("", (max, curr) => max.Length > curr.Length ? max : curr).Length).ToArray();
 
             StringBuilder sb = new StringBuilder();
-            for (int slotIdx = 0; slotIdx < 20 * 16; slotIdx++)
-            {
-                int hotbarIdx = slotIdx / 16;
-                switch ((HotbarType)hotbarIdx)
-                {
-                    case HotbarType.HOTBAR_1: sb.Append("[HB1] "); break;
-                    case HotbarType.HOTBAR_2: sb.Append("[HB2] "); break;
-                    case HotbarType.HOTBAR_3: sb.Append("[HB3] "); break;
-                    case HotbarType.HOTBAR_4: sb.Append("[HB4] "); break;
-                    case HotbarType.HOTBAR_5: sb.Append("[HB5] "); break;
-                    case HotbarType.HOTBAR_6: sb.Append("[HB6] "); break;
-                    case HotbarType.HOTBAR_7: sb.Append("[HB7] "); break;
-                    case HotbarType.HOTBAR_8: sb.Append("[HB8] "); break;
-                    case HotbarType.HOTBAR_9: sb.Append("[HB9] "); break;
-                    case HotbarType.HOTBAR_10: sb.Append("[HB0] "); break;
-                    case HotbarType.CROSS_HOTBAR_1: sb.Append("[XB1] "); break;
-                    case HotbarType.CROSS_HOTBAR_2: sb.Append("[XB2] "); break;
-                    case HotbarType.CROSS_HOTBAR_3: sb.Append("[XB3] "); break;
-                    case HotbarType.CROSS_HOTBAR_4: sb.Append("[XB4] "); break;
-                    case HotbarType.CROSS_HOTBAR_5: sb.Append("[XB5] "); break;
-                    case HotbarType.CROSS_HOTBAR_6: sb.Append("[XB6] "); break;
-                    case HotbarType.CROSS_HOTBAR_7: sb.Append("[XB7] "); break;
-                    case HotbarType.CROSS_HOTBAR_8: sb.Append("[XB8] "); break;
-                    case HotbarType.PETBAR: sb.Append("[PET] "); break;
-                    case HotbarType.CROSS_PETBAR: sb.Append("[XPT] "); break;
-                }
 
-                var slotComponents = barComponents[slotIdx];
-                sb.Append($"[Slot{slotIdx % 16 + 1:00}] ");
-                for (int componentIdx = 0; componentIdx < slotComponents.Count; componentIdx++)
+            int slotIdx = 0;
+            foreach (var slotComponents in barComponents)
+            {
+                var paddedSlotComponents = Enumerable.Zip(slotComponents, paddings, (slotComponent, padding) => slotComponent.PadRight(padding)).ToList();
+                paddedSlotComponents.Insert(0, $"[Slot{slotIdx + 1:00}]");
+                switch ((HotbarType)(slotIdx / 16))
                 {
-                    var component = slotComponents[componentIdx].PadRight(paddings[componentIdx]);
-                    sb.Append(component);
-                    if (componentIdx < slotComponents.Count - 1)
-                        sb.Append("  ");
+                    case HotbarType.HOTBAR_1: slotComponents.Insert(0, "[HB1]"); break;
+                    case HotbarType.HOTBAR_2: slotComponents.Insert(0, "[HB2]"); break;
+                    case HotbarType.HOTBAR_3: slotComponents.Insert(0, "[HB3]"); break;
+                    case HotbarType.HOTBAR_4: slotComponents.Insert(0, "[HB4]"); break;
+                    case HotbarType.HOTBAR_5: slotComponents.Insert(0, "[HB5]"); break;
+                    case HotbarType.HOTBAR_6: slotComponents.Insert(0, "[HB6]"); break;
+                    case HotbarType.HOTBAR_7: slotComponents.Insert(0, "[HB7]"); break;
+                    case HotbarType.HOTBAR_8: slotComponents.Insert(0, "[HB8]"); break;
+                    case HotbarType.HOTBAR_9: slotComponents.Insert(0, "[HB9]"); break;
+                    case HotbarType.HOTBAR_10: slotComponents.Insert(0, "[HB0]"); break;
+                    case HotbarType.CROSS_HOTBAR_1: slotComponents.Insert(0, "[XB1]"); break;
+                    case HotbarType.CROSS_HOTBAR_2: slotComponents.Insert(0, "[XB2]"); break;
+                    case HotbarType.CROSS_HOTBAR_3: slotComponents.Insert(0, "[XB3]"); break;
+                    case HotbarType.CROSS_HOTBAR_4: slotComponents.Insert(0, "[XB4]"); break;
+                    case HotbarType.CROSS_HOTBAR_5: slotComponents.Insert(0, "[XB5]"); break;
+                    case HotbarType.CROSS_HOTBAR_6: slotComponents.Insert(0, "[XB6]"); break;
+                    case HotbarType.CROSS_HOTBAR_7: slotComponents.Insert(0, "[XB7]"); break;
+                    case HotbarType.CROSS_HOTBAR_8: slotComponents.Insert(0, "[XB8]"); break;
+                    case HotbarType.PETBAR: slotComponents.Insert(0, "[PET]"); break;
+                    case HotbarType.CROSS_PETBAR: slotComponents.Insert(0, "[XPT]"); break;
                 }
+                sb.Append(string.Join("  ", paddedSlotComponents));
                 sb.Append("\n");
+                slotIdx++;
             }
             return sb.ToString();
         }
@@ -84,33 +69,21 @@ namespace Dalamud.Game.ClientState.Structs
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = RecastConsts.NumSlots)]
         public RecastSlot[] Slots;
 
-        internal List<List<string>> ToStringComponents()
-        {
-            return (from slot in Slots select slot.ToStringList()).ToList();
-        }
-
         public override string ToString()
         {
-            var barComponents = ToStringComponents();
-
-            int[] paddings = (
-                from col in barComponents.Transpose()
-                select col.Aggregate("", (max, curr) => max.Length > curr.Length ? max : curr).Length
-            ).ToArray();
+            List<List<string>> barComponents = Slots.Select(slot => Util.StructToComponents(slot)).ToList();
+            int[] paddings = barComponents.Transpose().Select(col => col.Aggregate("", (max, curr) => max.Length > curr.Length ? max : curr).Length).ToArray();
 
             StringBuilder sb = new StringBuilder();
-            for (int slotIdx = 0; slotIdx < 16; slotIdx++)
+
+            int slotIdx = 0;
+            foreach (var slotComponents in barComponents)
             {
-                var slotComponents = barComponents[slotIdx];
-                sb.Append($"[Slot{slotIdx + 1:00}] ");
-                for (int componentIdx = 0; componentIdx < slotComponents.Count; componentIdx++)
-                {
-                    var component = slotComponents[componentIdx].PadRight(paddings[componentIdx]);
-                    sb.Append(component);
-                    if (componentIdx < slotComponents.Count - 1)
-                        sb.Append("  ");
-                }
+                var paddedSlotComponents = Enumerable.Zip(slotComponents, paddings, (slotComponent, padding) => slotComponent.PadRight(padding)).ToList();
+                paddedSlotComponents.Insert(0, $"[Slot{slotIdx + 1:00}]");
+                sb.Append(string.Join("  ", paddedSlotComponents));
                 sb.Append("\n");
+                slotIdx++;
             }
             return sb.ToString();
         }
@@ -152,29 +125,9 @@ namespace Dalamud.Game.ClientState.Structs
 
         public bool InRange;
 
-        internal List<string> ToStringList()
-        {
-            List<string> components = new List<string>();
-            foreach (FieldInfo fieldInfo in this.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public))
-            {
-                var data = fieldInfo.GetValue(this);
-                if (fieldInfo.FieldType == typeof(byte[]))
-                {
-                    var joined = string.Join(", ", (byte[])data);
-                    var bstr = $"new byte[] {{ {joined} }}";
-                    components.Add($"{fieldInfo.Name}={bstr}");
-                }
-                else
-                {
-                    components.Add($"{fieldInfo.Name}={data}");
-                }
-            }
-            return components;
-        }
-
         public override string ToString()
         {
-            return string.Join("  ", ToStringList());
+            return string.Join("  ", Util.StructToComponents(this));
         }
     }
 }
