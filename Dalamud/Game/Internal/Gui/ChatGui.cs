@@ -101,7 +101,7 @@ namespace Dalamud.Game.Internal.Gui {
                 LastLinkedItemId = Marshal.ReadInt32(itemInfoPtr, 8);
                 LastLinkedItemFlags = Marshal.ReadByte(itemInfoPtr, 0x14);
 
-                Log.Debug($"HandlePopulateItemLinkDetour {linkObjectPtr} {itemInfoPtr} - linked:{LastLinkedItemId}");
+                Log.Verbose($"HandlePopulateItemLinkDetour {linkObjectPtr} {itemInfoPtr} - linked:{LastLinkedItemId}");
             } catch (Exception ex) {
                 Log.Error(ex, "Exception onPopulateItemLink hook.");
                 this.populateItemLinkHook.Original(linkObjectPtr, itemInfoPtr);
