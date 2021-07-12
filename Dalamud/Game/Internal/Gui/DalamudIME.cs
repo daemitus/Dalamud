@@ -134,9 +134,11 @@ namespace Dalamud.Game.Internal.Gui
                                             for (var i = 0; i < pageSize; i++)
                                             {
                                                 var offStart = dwOffsets[i + pageStart];
-                                                var offEnd = i + pageStart + 1 < candCount ? dwOffsets[i + pageStart + 1] : size;
+                                                var offEnd = i + pageStart + 1 < candCount
+                                                    ? dwOffsets[i + pageStart + 1]
+                                                    : size;
 
-                                                var pStrStart = candlistPtr + (int)offStart;
+                                                var pStrStart = candlistPtr + offStart;
                                                 var pStrEnd = candlistPtr + (int)offEnd;
 
                                                 var len = (int)(pStrEnd.ToInt64() - pStrStart.ToInt64());
